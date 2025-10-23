@@ -6,6 +6,9 @@ dist/
 wheels/
 *.egg-info
 .env
+logs/
+data/session*   
+faiss_index/
 
 # Virtual environments
 .venv

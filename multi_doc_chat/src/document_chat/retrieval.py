@@ -10,11 +10,12 @@ from langchain_community.vectorstores import FAISS
 
 from multi_doc_chat.utils.model_loader import ModelLoader
 from multi_doc_chat.exception.exception import DocumentPortalException
-from multi_doc_chat.logger import GLOBAL_LOGGER as log
+from multi_doc_chat.logger.logger import CustomLogger
 from multi_doc_chat.prompts.prompt_library import PROMPT_REGISTRY
 from multi_doc_chat.model.models import PromptType, ChatAnswer
 from pydantic import ValidationError
 
+logger = CustomLogger().get_logger(__name__)
 
 class ConversationalRAG:
     """
@@ -60,9 +61,9 @@ class ConversationalRAG:
             if self.retriever is not None:
                 self._build_lcel_chain()
 
-            log.info("ConversationalRAG initialized", session_id=self.session_id)
+            logger.info("ConversationalRAG initialized", session_id=self.session_id)
         except Exception as e:
-            log.error("Failed to initialize ConversationalRAG", error=str(e))
+            logger.error("Failed to initialize ConversationalRAG", error=str(e))
             raise DocumentPortalException("Initialization error in ConversationalRAG", sys)
 
     # ---------- Public API ----------
@@ -117,7 +118,7 @@ class ConversationalRAG:
             )
             self._build_lcel_chain()
 
-            log.info(
+            logger.info(
                 "FAISS retriever loaded successfully",
                 index_path=index_path,
                 index_name=index_name,
@@ -130,7 +131,7 @@ class ConversationalRAG:
             return self.retriever
 
         except Exception as e:
-            log.error("Failed to load retriever from FAISS", error=str(e))
+            logger.error("Failed to load retriever from FAISS", error=str(e))
             raise DocumentPortalException("Loading error in ConversationalRAG", sys)
 
     def invoke(self, user_input: str, chat_history: Optional[List[BaseMessage]] = None) -> str:
@@ -157,7 +158,7 @@ class ConversationalRAG:
             answer = self.chain.invoke(payload)
 
             if not answer:
-                log.warning(
+                logger.warning(
                     "No answer generated", user_input=user_input, session_id=self.session_id
                 )
                 return "no answer generated."
@@ -167,10 +168,10 @@ class ConversationalRAG:
                 validated = ChatAnswer(answer=str(answer))
                 answer = validated.answer
             except ValidationError as ve:
-                log.error("Invalid chat answer", error=str(ve))
+                logger.error("Invalid chat answer", error=str(ve))
                 raise DocumentPortalException("Invalid chat answer", sys)
 
-            log.info(
+            logger.info(
                 "Chain invoked successfully",
                 session_id=self.session_id,
                 user_input=user_input,
@@ -178,7 +179,7 @@ class ConversationalRAG:
             )
             return answer
         except Exception as e:
-            log.error("Failed to invoke ConversationalRAG", error=str(e))
+            logger.error("Failed to invoke ConversationalRAG", error=str(e))
             raise DocumentPortalException("Invocation error in ConversationalRAG", sys)
 
     # ---------- Internal Methods ----------
@@ -189,10 +190,10 @@ class ConversationalRAG:
             llm = ModelLoader().load_llm()
             if not llm:
                 raise ValueError("LLM could not be loaded")
-            log.info("LLM loaded successfully", session_id=self.session_id)
+            logger.info("LLM loaded successfully", session_id=self.session_id)
             return llm
         except Exception as e:
-            log.error("Failed to load LLM", error=str(e))
+            logger.error("Failed to load LLM", error=str(e))
             raise DocumentPortalException("LLM loading error in ConversationalRAG", sys)
 
     @staticmethod
@@ -234,7 +235,7 @@ class ConversationalRAG:
                 | StrOutputParser()
             )
 
-            log.info("LCEL graph built successfully", session_id=self.session_id)
+            logger.info("LCEL graph built successfully", session_id=self.session_id)
         except Exception as e:
-            log.error("Failed to build LCEL chain", error=str(e), session_id=self.session_id)
+            logger.error("Failed to build LCEL chain", error=str(e), session_id=self.session_id)
             raise DocumentPortalException("Failed to build LCEL chain", sys)

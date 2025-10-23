@@ -5,7 +5,7 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from multi_doc_chat.utils.model_loader import ModelLoader
-from multi_doc_chat.logger import GLOBAL_LOGGER as log
+from multi_doc_chat.logger.logger import CustomLogger
 from multi_doc_chat.exception.exception import DocumentPortalException
 import json
 import uuid
@@ -14,6 +14,8 @@ from multi_doc_chat.utils.file_io import save_uploaded_files
 from multi_doc_chat.utils.document_ops import load_documents
 import hashlib
 import sys
+
+logger = CustomLogger().get_logger(__name__)
 
 def generate_session_id() -> str:
     """
@@ -77,13 +79,13 @@ class ChatIngestor:
             self.faiss_dir = self._resolve_dir(self.faiss_base)
 
             # Log initialization
-            log.info("ChatIngestor initialized",
+            logger.info("ChatIngestor initialized",
                      session_id=self.session_id,
                      temp_dir=str(self.temp_dir),
                      faiss_dir=str(self.faiss_dir),
                      sessionized=self.use_session)
         except Exception as e:
-            log.error("Failed to initialize ChatIngestor", error=str(e))
+            logger.error("Failed to initialize ChatIngestor", error=str(e))
             raise DocumentPortalException("Initialization error in ChatIngestor", e) from e
 
     def _resolve_dir(self, base: Path) -> Path:
@@ -116,7 +118,7 @@ class ChatIngestor:
         """
         splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         chunks = splitter.split_documents(docs)
-        log.info("Documents split", chunks=len(chunks), chunk_size=chunk_size, overlap=chunk_overlap)
+        logger.info("Documents split", chunks=len(chunks), chunk_size=chunk_size, overlap=chunk_overlap)
         return chunks
 
     def built_retriver(self,
@@ -171,19 +173,19 @@ class ChatIngestor:
 
             # Add new documents to FAISS index
             added = fm.add_documents(chunks)
-            log.info("FAISS index updated", added=added, index=str(self.faiss_dir))
+            logger.info("FAISS index updated", added=added, index=str(self.faiss_dir))
 
             # Configure search parameters
             search_kwargs = {"k": k}
             if search_type == "mmr":
                 search_kwargs["fetch_k"] = fetch_k
                 search_kwargs["lambda_mult"] = lambda_mult
-                log.info("Using MMR search", k=k, fetch_k=fetch_k, lambda_mult=lambda_mult)
+                logger.info("Using MMR search", k=k, fetch_k=fetch_k, lambda_mult=lambda_mult)
 
             return vs.as_retriever(search_type=search_type, search_kwargs=search_kwargs)
 
         except Exception as e:
-            log.error("Failed to build retriever", error=str(e))
+            logger.error("Failed to build retriever", error=str(e))
             raise DocumentPortalException("Failed to build retriever", e) from e
 
 

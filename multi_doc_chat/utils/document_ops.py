@@ -1,11 +1,13 @@
 from __future__ import annotations
 from pathlib import Path
 from typing import Iterable, List
-from langchain.schema import Document
+from langchain_core.documents import Document
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
-from multi_doc_chat.logger import GLOBAL_LOGGER as log
+from multi_doc_chat.logger.logger import CustomLogger
 from multi_doc_chat.exception.exception import DocumentPortalException
 from fastapi import UploadFile
+
+logger = CustomLogger().get_logger(__name__)
 
 # Supported file extensions for document ingestion
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
@@ -38,17 +40,17 @@ def load_documents(paths: Iterable[Path]) -> List[Document]:
                 loader = TextLoader(str(p), encoding="utf-8")
             else:
                 # Skip unsupported file types
-                log.warning("Unsupported extension skipped", path=str(p))
+                logger.warning("Unsupported extension skipped", path=str(p))
                 continue
 
             # Load and append documents
             docs.extend(loader.load())
 
-        log.info("Documents loaded", count=len(docs))
+        logger.info("Documents loaded", count=len(docs))
         return docs
 
     except Exception as e:
-        log.error("Failed loading documents", error=str(e))
+        logger.error("Failed loading documents", error=str(e))
         raise DocumentPortalException("Error loading documents", e) from e
     
 

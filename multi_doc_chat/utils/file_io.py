@@ -10,7 +10,7 @@ from multi_doc_chat.exception.exception import DocumentPortalException
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt", ".pptx", ".md", ".csv", ".xlsx", ".xls", ".db", ".sqlite", ".sqlite3"}
 
 # Initialize local logger instance
-log = CustomLogger().get_logger(__name__)
+logger = CustomLogger().get_logger(__name__)
 
 
 def save_uploaded_files(uploaded_files: Iterable, target_dir: Path) -> List[Path]:
@@ -42,7 +42,7 @@ def save_uploaded_files(uploaded_files: Iterable, target_dir: Path) -> List[Path
 
             # Skip unsupported file extensions
             if ext not in SUPPORTED_EXTENSIONS:
-                log.warning("Unsupported file skipped", filename=name)
+                logger.warning("Unsupported file skipped", filename=name)
                 continue
 
             # Sanitize file name (alphanumeric, dash, underscore) and lowercase
@@ -80,11 +80,11 @@ def save_uploaded_files(uploaded_files: Iterable, target_dir: Path) -> List[Path
 
             # Keep track of saved file path
             saved.append(out)
-            log.info("File saved for ingestion", uploaded=name, saved_as=str(out))
+            logger.info("File saved for ingestion", uploaded=name, saved_as=str(out))
 
         return saved
 
     except Exception as e:
         # Log and raise custom exception if any file fails to save
-        log.error("Failed to save uploaded files", error=str(e), dir=str(target_dir))
+        logger.error("Failed to save uploaded files", error=str(e), dir=str(target_dir))
         raise DocumentPortalException("Failed to save uploaded files", e) from e
