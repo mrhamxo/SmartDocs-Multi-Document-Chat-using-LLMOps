@@ -143,7 +143,7 @@ class ModelLoader:
             ValueError: If the requested LLM provider is missing or unsupported.
         """
         llm_block = self.config["llm"]
-        provider_key = os.getenv("LLM_PROVIDER", "google")
+        provider_key = os.getenv("LLM_PROVIDER", "groq")
 
         if provider_key not in llm_block:
             logger.error("LLM provider not found in config", provider=provider_key)

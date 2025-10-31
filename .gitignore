@@ -9,6 +9,7 @@ wheels/
 logs/
 data/session*   
 faiss_index/
+notebook/data*
 
 # Virtual environments
 .venv
